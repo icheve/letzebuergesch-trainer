@@ -823,6 +823,30 @@ h3 {
   font-size: clamp(26px, 7vw, 36px);
 }
 
+.lod-audio-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lod-audio-row > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.lod-audio-row > a:hover {
+  color: var(--green);
+  text-decoration: underline;
+}
+
 .rating-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

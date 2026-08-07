@@ -117,7 +117,7 @@ export function SentenceTrainer({
 
       {status === 'correct' ? (
         <div className="correct-actions">
-          <AudioButton text={current.answerLux} label="Прослушать фразу" />
+          <AudioButton text={current.answerLux} label="Синтез фразы" />
           <button type="button" className="primary-button" onClick={next}>Следующая <ArrowRight size={18} /></button>
         </div>
       ) : (

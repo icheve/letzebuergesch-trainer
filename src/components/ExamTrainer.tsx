@@ -64,7 +64,7 @@ export function ExamTrainer({
         <h2 lang="lb">{current.questionLux}</h2>
         {translation && <p className="question-translation">{current.questionRu}</p>}
         <div className="question-actions">
-          <AudioButton text={current.questionLux} label="Слушать вопрос" />
+          <AudioButton text={current.questionLux} label="Синтез: вопрос" />
           <button type="button" className="text-button" onClick={() => setTranslation((value) => !value)}>
             {translation ? <EyeOff size={17} /> : <Eye size={17} />} {translation ? 'Скрыть перевод' : 'Показать перевод'}
           </button>
@@ -86,7 +86,7 @@ export function ExamTrainer({
           <p className="prompt-label">Пример ответа</p>
           <h3 lang="lb">{current.answerLux}</h3>
           <p>{current.answerRu}</p>
-          <AudioButton text={current.answerLux} label="Слушать ответ" />
+          <AudioButton text={current.answerLux} label="Синтез: ответ" />
           <div className="self-rating">
             <p>Как Вы ответили?</p>
             <div>

@@ -21,4 +21,9 @@ describe('learning content', () => {
     expect(allVocabulary.every((item) => item.russian.trim().length > 0)).toBe(true)
     expect(allSentences.every((item) => item.answerRu.trim().length > 0 && item.questionRu.trim().length > 0)).toBe(true)
   })
+
+  it('connects every vocabulary card to an official LOD recording', () => {
+    expect(allVocabulary.every((item) => /^https:\/\/lod\.lu\/uploads\/AAC\/[a-z0-9]+\.m4a$/.test(item.lodAudioUrl))).toBe(true)
+    expect(allVocabulary.every((item) => item.lodId.length > 0)).toBe(true)
+  })
 })

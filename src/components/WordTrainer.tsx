@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check, RotateCcw, Sparkles } from 'lucide-react'
+import { Check, ExternalLink, RotateCcw, Sparkles } from 'lucide-react'
 import { allVocabulary } from '../data/topics'
 import type { ProgressState, Rating } from '../types'
 import { isDue, scheduleReview } from '../utils/srs'
@@ -90,7 +90,17 @@ export function WordTrainer({
           <div className="flashcard-back">
             <div className="answer-mark"><Check size={18} /> Ответ</div>
             <h3>{current.luxembourgish}</h3>
-            <AudioButton text={current.luxembourgish} />
+            <div className="lod-audio-row">
+              <AudioButton text={current.luxembourgish} audioUrl={current.lodAudioUrl} />
+              <a
+                href={`https://lod.lu/artikel/${current.lodId}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(event) => event.stopPropagation()}
+              >
+                Статья в LOD <ExternalLink size={13} />
+              </a>
+            </div>
           </div>
         ) : (
           <button type="button" className="reveal-button" onClick={() => setRevealed(true)}>
