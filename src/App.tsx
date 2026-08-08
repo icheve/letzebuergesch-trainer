@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { WifiOff } from 'lucide-react'
 import { BottomNav, type Tab } from './components/BottomNav'
 import { Dashboard } from './components/Dashboard'
-import { ExamTrainer } from './components/ExamTrainer'
+import { GrammarTrainer } from './components/GrammarTrainer'
 import { SentenceTrainer } from './components/SentenceTrainer'
 import { TopicsPage } from './components/TopicsPage'
 import { WordTrainer } from './components/WordTrainer'
@@ -20,6 +20,8 @@ export default function App() {
     saveSentenceDeck,
     selectSentenceTopic,
     rateExam,
+    saveGrammarSession,
+    completeGrammarLesson,
   } = useProgress()
   const { canInstall, installed, install } = useInstallPrompt()
 
@@ -60,7 +62,14 @@ export default function App() {
           selectTopic={selectSentenceTopic}
         />
       )}
-      {tab === 'exam' && <ExamTrainer progress={progress} rateExam={rateExam} />}
+      {tab === 'grammar' && (
+        <GrammarTrainer
+          progress={progress}
+          rateExam={rateExam}
+          saveGrammarSession={saveGrammarSession}
+          completeGrammarLesson={completeGrammarLesson}
+        />
+      )}
       {tab === 'topics' && <TopicsPage progress={progress} />}
       <BottomNav active={tab} onChange={setTab} />
     </div>

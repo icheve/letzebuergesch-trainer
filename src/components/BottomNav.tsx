@@ -1,12 +1,12 @@
-import { BookOpenText, GraduationCap, House, Layers3, MessagesSquare } from 'lucide-react'
+import { BookOpenText, GraduationCap, House, Layers3, Route } from 'lucide-react'
 
-export type Tab = 'home' | 'words' | 'sentences' | 'exam' | 'topics'
+export type Tab = 'home' | 'words' | 'sentences' | 'grammar' | 'topics'
 
 const items: { id: Tab; label: string; icon: typeof House }[] = [
   { id: 'home', label: 'Сегодня', icon: House },
   { id: 'words', label: 'Лексика', icon: Layers3 },
   { id: 'sentences', label: 'Фразы', icon: BookOpenText },
-  { id: 'exam', label: 'Экзамен', icon: MessagesSquare },
+  { id: 'grammar', label: 'Грамматика', icon: Route },
   { id: 'topics', label: 'Темы', icon: GraduationCap },
 ]
 

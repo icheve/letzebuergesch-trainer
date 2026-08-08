@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { DailyActivity, ProgressState, Rating, SentenceDeck } from '../types'
+import type { DailyActivity, GrammarSession, ProgressState, Rating, SentenceDeck } from '../types'
+import { nextGrammarProgress } from '../utils/grammar'
 import { scheduleReview } from '../utils/srs'
 
 const STORAGE_KEY = 'letzebuergesch-28-progress-v1'
@@ -9,6 +10,7 @@ const EMPTY: ProgressState = {
   sentenceDecks: {},
   sentenceTopic: 'all',
   examRatings: {},
+  grammarLessons: {},
   activity: [],
 }
 
@@ -26,6 +28,9 @@ function loadProgress(): ProgressState {
       ...parsed,
       sentenceDecks: parsed.sentenceDecks ?? {},
       sentenceTopic: parsed.sentenceTopic ?? 'all',
+      grammarLessons: parsed.grammarLessons ?? {},
+      grammarSession: parsed.grammarSession,
+      activity: (parsed.activity ?? []).map((day: DailyActivity) => ({ ...day, grammar: day.grammar ?? 0 })),
     }
   } catch {
     return EMPTY
@@ -45,7 +50,7 @@ export function useProgress() {
       const existing = current.activity.find((day) => day.date === date)
       const activity = existing
         ? current.activity.map((day) => day.date === date ? { ...day, [field]: day[field] + 1 } : day)
-        : [...current.activity, { date, words: 0, sentences: 0, exam: 0, [field]: 1 }].slice(-180)
+        : [...current.activity, { date, words: 0, sentences: 0, exam: 0, grammar: 0, [field]: 1 }].slice(-180)
       return { ...current, activity }
     })
   }, [])
@@ -88,7 +93,23 @@ export function useProgress() {
       ...current,
       examRatings: { ...current.examRatings, [sentenceId]: rating },
     }))
-    addActivity('exam')
+    addActivity('grammar')
+  }, [addActivity])
+
+  const saveGrammarSession = useCallback((session?: GrammarSession) => {
+    setProgress((current) => ({ ...current, grammarSession: session }))
+  }, [])
+
+  const completeGrammarLesson = useCallback((lessonId: string, score: number) => {
+    setProgress((current) => ({
+      ...current,
+      grammarSession: undefined,
+      grammarLessons: {
+        ...current.grammarLessons,
+        [lessonId]: nextGrammarProgress(current.grammarLessons[lessonId], score),
+      },
+    }))
+    addActivity('grammar')
   }, [addActivity])
 
   const resetProgress = useCallback(() => {
@@ -96,7 +117,7 @@ export function useProgress() {
   }, [])
 
   const today = useMemo(() => progress.activity.find((day) => day.date === localDate()) ?? {
-    date: localDate(), words: 0, sentences: 0, exam: 0,
+    date: localDate(), words: 0, sentences: 0, exam: 0, grammar: 0,
   }, [progress.activity])
 
   return {
@@ -107,6 +128,8 @@ export function useProgress() {
     saveSentenceDeck,
     selectSentenceTopic,
     rateExam,
+    saveGrammarSession,
+    completeGrammarLesson,
     resetProgress,
   }
 }

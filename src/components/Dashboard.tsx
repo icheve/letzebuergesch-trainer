@@ -1,4 +1,5 @@
-import { ArrowRight, BookOpenText, CalendarDays, Check, Flame, Layers3, MessageCircle, Smartphone, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpenText, CalendarDays, Check, Flame, GraduationCap, Layers3, Smartphone, Sparkles } from 'lucide-react'
+import { grammarLessons } from '../data/grammarLessons'
 import { allSentences, allVocabulary, topics } from '../data/topics'
 import type { DailyActivity, ProgressState } from '../types'
 import type { Tab } from './BottomNav'
@@ -18,7 +19,7 @@ function dateKey(date: Date) {
 }
 
 function calculateStreak(activity: DailyActivity[]) {
-  const active = new Set(activity.filter((day) => day.words + day.sentences + day.exam > 0).map((day) => day.date))
+  const active = new Set(activity.filter((day) => day.words + day.sentences + day.exam + day.grammar > 0).map((day) => day.date))
   const cursor = new Date()
   if (!active.has(dateKey(cursor))) cursor.setDate(cursor.getDate() - 1)
   let streak = 0
@@ -65,12 +66,13 @@ export function Dashboard({
   const learnedWords = allVocabulary.filter((card) => (progress.reviews[card.id]?.repetitions ?? 0) > 0).length
   const learnedSentences = allSentences.filter((item) => (progress.sentenceAttempts[item.id]?.correct ?? 0) > 0).length
   const confidentAnswers = Object.values(progress.examRatings).filter((rating) => rating === 'good' || rating === 'easy').length
-  const learnedTotal = learnedWords + learnedSentences + confidentAnswers
-  const contentTotal = allVocabulary.length + allSentences.length * 2
+  const masteredGrammar = grammarLessons.filter((lesson) => (progress.grammarLessons[lesson.id]?.bestScore ?? 0) >= 4).length
+  const learnedTotal = learnedWords + learnedSentences + confidentAnswers + masteredGrammar * 5
+  const contentTotal = allVocabulary.length + allSentences.length * 2 + grammarLessons.length * 5
   const readiness = Math.round(learnedTotal / contentTotal * 100)
   const streak = calculateStreak(progress.activity)
   const days = daysToExam()
-  const doneToday = Math.min(today.words, 10) + Math.min(today.sentences, 5) + Math.min(today.exam, 3)
+  const doneToday = Math.min(today.words, 10) + Math.min(today.sentences, 5) + Math.min(today.grammar, 1)
 
   return (
     <main className="screen dashboard">
@@ -95,12 +97,12 @@ export function Dashboard({
       <section className="daily-section">
         <div className="section-title">
           <div><p className="kicker">Ваш ритм на сегодня</p><h2>Ежедневная тренировка</h2></div>
-          <span>{doneToday}/18</span>
+          <span>{doneToday}/16</span>
         </div>
         <div className="goal-list">
           <GoalRow icon={Layers3} label="Тренировать лексику" current={today.words} target={10} onClick={() => onNavigate('words')} />
           <GoalRow icon={BookOpenText} label="Собрать фразы" current={today.sentences} target={5} onClick={() => onNavigate('sentences')} />
-          <GoalRow icon={MessageCircle} label="Ответить вслух" current={today.exam} target={3} onClick={() => onNavigate('exam')} />
+          <GoalRow icon={GraduationCap} label="Пройти урок грамматики" current={today.grammar} target={1} onClick={() => onNavigate('grammar')} />
         </div>
       </section>
 

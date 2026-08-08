@@ -53,6 +53,22 @@ export interface DailyActivity {
   words: number
   sentences: number
   exam: number
+  grammar: number
+}
+
+export interface GrammarLessonProgress {
+  attempts: number
+  bestScore: number
+  lastScore: number
+  completedAt: number
+  dueAt: number
+  intervalDays: number
+}
+
+export interface GrammarSession {
+  lessonId: string
+  exerciseIndex: number
+  firstTryCorrect: number
 }
 
 export interface SentenceDeck {
@@ -67,5 +83,7 @@ export interface ProgressState {
   sentenceDecks: Record<string, SentenceDeck>
   sentenceTopic: string
   examRatings: Record<string, 'hard' | 'good' | 'easy'>
+  grammarLessons: Record<string, GrammarLessonProgress>
+  grammarSession?: GrammarSession
   activity: DailyActivity[]
 }
