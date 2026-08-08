@@ -26,4 +26,9 @@ describe('learning content', () => {
     expect(allVocabulary.every((item) => /^https:\/\/lod\.lu\/uploads\/AAC\/[a-z0-9]+\.m4a$/.test(item.lodAudioUrl))).toBe(true)
     expect(allVocabulary.every((item) => item.lodId.length > 0)).toBe(true)
   })
+
+  it('provides a usable personal context for every vocabulary card', () => {
+    expect(allVocabulary.every((item) => item.sentenceLux.includes(item.answer))).toBe(true)
+    expect(allVocabulary.every((item) => item.sentenceRu.trim().length > 0)).toBe(true)
+  })
 })

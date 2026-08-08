@@ -98,7 +98,7 @@ export function Dashboard({
           <span>{doneToday}/18</span>
         </div>
         <div className="goal-list">
-          <GoalRow icon={Layers3} label="Повторить слова" current={today.words} target={10} onClick={() => onNavigate('words')} />
+          <GoalRow icon={Layers3} label="Тренировать лексику" current={today.words} target={10} onClick={() => onNavigate('words')} />
           <GoalRow icon={BookOpenText} label="Собрать фразы" current={today.sentences} target={5} onClick={() => onNavigate('sentences')} />
           <GoalRow icon={MessageCircle} label="Ответить вслух" current={today.exam} target={3} onClick={() => onNavigate('exam')} />
         </div>

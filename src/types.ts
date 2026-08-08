@@ -12,6 +12,12 @@ export interface VocabularyCard {
   exampleRu?: string
 }
 
+export interface VocabularyContext {
+  sentenceLux: string
+  sentenceRu: string
+  answer: string
+}
+
 export interface SentenceItem {
   id: string
   questionLux: string

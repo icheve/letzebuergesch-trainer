@@ -4,7 +4,7 @@ export type Tab = 'home' | 'words' | 'sentences' | 'exam' | 'topics'
 
 const items: { id: Tab; label: string; icon: typeof House }[] = [
   { id: 'home', label: 'Сегодня', icon: House },
-  { id: 'words', label: 'Слова', icon: Layers3 },
+  { id: 'words', label: 'Лексика', icon: Layers3 },
   { id: 'sentences', label: 'Фразы', icon: BookOpenText },
   { id: 'exam', label: 'Экзамен', icon: MessagesSquare },
   { id: 'topics', label: 'Темы', icon: GraduationCap },

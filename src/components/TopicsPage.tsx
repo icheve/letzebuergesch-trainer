@@ -36,7 +36,7 @@ function TopicCard({ topic, progress, expanded, onToggle }: {
       {expanded && (
         <div className="topic-details">
           <div className="topic-stats">
-            <span><BookOpen size={18} /><strong>{topic.vocabulary.length}</strong><small>слов</small></span>
+            <span><BookOpen size={18} /><strong>{topic.vocabulary.length}</strong><small>лексем</small></span>
             <span><MessageSquareText size={18} /><strong>{topic.sentences.length}</strong><small>ответов</small></span>
             <span><Clock3 size={18} /><strong>{topic.sentences.filter((item) => item.section === 'past').length}</strong><small>в прошлом</small></span>
           </div>
