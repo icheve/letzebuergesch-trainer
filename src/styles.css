@@ -961,6 +961,20 @@ h3 {
   box-shadow: 0 3px 0 #9db5ad;
 }
 
+.sentence-answer button.tile-position-correct {
+  border-color: #69a28f;
+  color: #226453;
+  background: #d9eee5;
+  box-shadow: 0 3px 0 #87b5a5;
+}
+
+.sentence-answer button.tile-position-wrong {
+  border-color: #d86d72;
+  color: #a63138;
+  background: #ffe5e2;
+  box-shadow: 0 3px 0 #d99a9a;
+}
+
 .feedback {
   display: flex;
   align-items: center;
@@ -974,6 +988,14 @@ h3 {
 
 .feedback.success { color: #28705e; }
 .feedback.error { color: #af4045; }
+
+.feedback > svg {
+  flex: 0 0 auto;
+}
+
+.feedback > span {
+  line-height: 1.45;
+}
 
 .tile-bank {
   display: flex;

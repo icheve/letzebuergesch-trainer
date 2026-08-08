@@ -3,11 +3,10 @@ import { ArrowRight, Check, Lightbulb, RotateCcw, X } from 'lucide-react'
 import { allSentences } from '../data/topics'
 import type { ProgressState, SentenceDeck } from '../types'
 import { advanceSentenceDeck, reconcileSentenceDeck } from '../utils/sentenceDeck'
+import { applySentenceHint, firstIncorrectPosition, type SentenceTile } from '../utils/sentenceTiles'
 import { normalizeAnswer, shuffle, splitIntoTiles } from '../utils/text'
 import { AudioButton } from './AudioButton'
 import { TopicFilter } from './TopicFilter'
-
-type Tile = { id: number; text: string }
 
 export function SentenceTrainer({
   progress,
@@ -20,8 +19,8 @@ export function SentenceTrainer({
   saveSentenceDeck: (key: string, deck: SentenceDeck) => void
   selectTopic: (topic: string) => void
 }) {
-  const [available, setAvailable] = useState<Tile[]>([])
-  const [selected, setSelected] = useState<Tile[]>([])
+  const [available, setAvailable] = useState<SentenceTile[]>([])
+  const [selected, setSelected] = useState<SentenceTile[]>([])
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle')
   const [hintCount, setHintCount] = useState(0)
 
@@ -55,14 +54,14 @@ export function SentenceTrainer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.id, topic])
 
-  const choose = (tile: Tile) => {
+  const choose = (tile: SentenceTile) => {
     if (status === 'correct') return
     setAvailable((tiles) => tiles.filter((item) => item.id !== tile.id))
     setSelected((tiles) => [...tiles, tile])
     setStatus('idle')
   }
 
-  const remove = (tile: Tile) => {
+  const remove = (tile: SentenceTile) => {
     if (status === 'correct') return
     setSelected((tiles) => tiles.filter((item) => item.id !== tile.id))
     setAvailable((tiles) => [...tiles, tile])
@@ -81,17 +80,21 @@ export function SentenceTrainer({
   }
 
   const showHint = () => {
-    if (!current) return
-    const correctTiles = splitIntoTiles(current.answerLux)
-    const nextText = correctTiles[selected.length]
-    const tile = available.find((item) => item.text === nextText)
-    if (tile) choose(tile)
+    const result = applySentenceHint(selected, available)
+    if (result.correctedPosition < 0) return
+    setSelected(result.selected)
+    setAvailable(result.available)
+    setStatus('idle')
     setHintCount((value) => value + 1)
   }
 
   if (!current) return <main className="screen"><div className="empty-state">В этой теме пока нет предложений.</div></main>
 
   const attempts = progress.sentenceAttempts[current.id]
+  const correctTiles = splitIntoTiles(current.answerLux)
+  const firstWrongPosition = status === 'wrong' ? firstIncorrectPosition(selected) : -1
+  const wrongTile = firstWrongPosition >= 0 ? selected[firstWrongPosition] : undefined
+  const expectedTile = firstWrongPosition >= 0 ? correctTiles[firstWrongPosition] : undefined
 
   return (
     <main className="screen trainer-screen sentence-screen">
@@ -117,12 +120,28 @@ export function SentenceTrainer({
       <section className={`sentence-workspace status-${status}`}>
         <div className="sentence-answer" aria-label="Собранное предложение">
           {selected.length === 0 && <span className="placeholder">Нажимайте на слова в нужном порядке…</span>}
-          {selected.map((tile) => (
-            <button type="button" key={tile.id} onClick={() => remove(tile)}>{tile.text}</button>
+          {selected.map((tile, position) => (
+            <button
+              type="button"
+              key={tile.id}
+              className={status === 'wrong' ? tile.id === position ? 'tile-position-correct' : 'tile-position-wrong' : undefined}
+              onClick={() => remove(tile)}
+            >
+              {tile.text}
+            </button>
           ))}
         </div>
         {status === 'correct' && <div className="feedback success"><Check size={19} /> Отлично! Предложение собрано верно.</div>}
-        {status === 'wrong' && <div className="feedback error"><X size={19} /> Порядок пока неверный. Попробуйте ещё раз.</div>}
+        {status === 'wrong' && (
+          <div className="feedback error">
+            <X size={19} />
+            <span>
+              {wrongTile && expectedTile
+                ? <>Первое несовпадение в позиции {firstWrongPosition + 1}: «{wrongTile.text}» → «{expectedTile}».</>
+                : 'Порядок пока неверный. Попробуйте ещё раз.'}
+            </span>
+          </div>
+        )}
       </section>
 
       <div className="tile-bank" aria-label="Доступные слова">
@@ -139,8 +158,8 @@ export function SentenceTrainer({
       ) : (
         <div className="builder-actions">
           <button type="button" className="text-button" onClick={() => prepare(current.answerLux)}><RotateCcw size={17} /> Сбросить</button>
-          <button type="button" className="text-button" onClick={showHint}><Lightbulb size={17} /> Подсказка{hintCount ? ` · ${hintCount}` : ''}</button>
-          <button type="button" className="primary-button" disabled={!selected.length} onClick={check}>Проверить</button>
+          <button type="button" className="text-button" onClick={showHint}><Lightbulb size={17} /> {status === 'wrong' ? 'Исправить ошибку' : 'Подсказка'}{hintCount ? ` · ${hintCount}` : ''}</button>
+          <button type="button" className="primary-button" disabled={available.length > 0} onClick={check}>Проверить</button>
         </div>
       )}
     </main>
