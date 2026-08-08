@@ -9,10 +9,10 @@ export function splitIntoTiles(sentence: string) {
   return sentence.trim().split(/\s+/)
 }
 
-export function shuffle<T>(items: T[]) {
+export function shuffle<T>(items: T[], random = Math.random) {
   const copy = [...items]
   for (let index = copy.length - 1; index > 0; index -= 1) {
-    const target = Math.floor(Math.random() * (index + 1))
+    const target = Math.floor(random() * (index + 1))
     ;[copy[index], copy[target]] = [copy[target], copy[index]]
   }
   return copy

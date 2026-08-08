@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { DailyActivity, ProgressState, Rating } from '../types'
+import type { DailyActivity, ProgressState, Rating, SentenceDeck } from '../types'
 import { scheduleReview } from '../utils/srs'
 
 const STORAGE_KEY = 'letzebuergesch-28-progress-v1'
-const EMPTY: ProgressState = { reviews: {}, sentenceAttempts: {}, examRatings: {}, activity: [] }
+const EMPTY: ProgressState = {
+  reviews: {},
+  sentenceAttempts: {},
+  sentenceDecks: {},
+  sentenceTopic: 'all',
+  examRatings: {},
+  activity: [],
+}
 
 function localDate(date = new Date()) {
   return date.toLocaleDateString('sv-SE')
@@ -12,7 +19,14 @@ function localDate(date = new Date()) {
 function loadProgress(): ProgressState {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? { ...EMPTY, ...JSON.parse(saved) } : EMPTY
+    if (!saved) return EMPTY
+    const parsed = JSON.parse(saved)
+    return {
+      ...EMPTY,
+      ...parsed,
+      sentenceDecks: parsed.sentenceDecks ?? {},
+      sentenceTopic: parsed.sentenceTopic ?? 'all',
+    }
   } catch {
     return EMPTY
   }
@@ -58,6 +72,17 @@ export function useProgress() {
     addActivity('sentences')
   }, [addActivity])
 
+  const saveSentenceDeck = useCallback((key: string, deck: SentenceDeck) => {
+    setProgress((current) => ({
+      ...current,
+      sentenceDecks: { ...current.sentenceDecks, [key]: deck },
+    }))
+  }, [])
+
+  const selectSentenceTopic = useCallback((topic: string) => {
+    setProgress((current) => ({ ...current, sentenceTopic: topic }))
+  }, [])
+
   const rateExam = useCallback((sentenceId: string, rating: 'hard' | 'good' | 'easy') => {
     setProgress((current) => ({
       ...current,
@@ -74,5 +99,14 @@ export function useProgress() {
     date: localDate(), words: 0, sentences: 0, exam: 0,
   }, [progress.activity])
 
-  return { progress, today, reviewCard, recordSentence, rateExam, resetProgress }
+  return {
+    progress,
+    today,
+    reviewCard,
+    recordSentence,
+    saveSentenceDeck,
+    selectSentenceTopic,
+    rateExam,
+    resetProgress,
+  }
 }

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Check, Lightbulb, RotateCcw, X } from 'lucide-react'
 import { allSentences } from '../data/topics'
-import type { ProgressState } from '../types'
+import type { ProgressState, SentenceDeck } from '../types'
+import { advanceSentenceDeck, reconcileSentenceDeck } from '../utils/sentenceDeck'
 import { normalizeAnswer, shuffle, splitIntoTiles } from '../utils/text'
 import { AudioButton } from './AudioButton'
 import { TopicFilter } from './TopicFilter'
@@ -11,19 +12,34 @@ type Tile = { id: number; text: string }
 export function SentenceTrainer({
   progress,
   recordSentence,
+  saveSentenceDeck,
+  selectTopic,
 }: {
   progress: ProgressState
   recordSentence: (id: string, correct: boolean) => void
+  saveSentenceDeck: (key: string, deck: SentenceDeck) => void
+  selectTopic: (topic: string) => void
 }) {
-  const [topic, setTopic] = useState('all')
-  const [position, setPosition] = useState(0)
   const [available, setAvailable] = useState<Tile[]>([])
   const [selected, setSelected] = useState<Tile[]>([])
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle')
   const [hintCount, setHintCount] = useState(0)
 
+  const topic = progress.sentenceTopic
   const items = useMemo(() => allSentences.filter((item) => topic === 'all' || item.topicId === topic), [topic])
-  const current = items[position % Math.max(items.length, 1)]
+  const itemIds = useMemo(() => items.map((item) => item.id), [items])
+  const savedDeck = progress.sentenceDecks[topic]
+  const initiallyCompleted = useMemo(() => itemIds.filter((id) => (progress.sentenceAttempts[id]?.correct ?? 0) > 0), [itemIds, progress.sentenceAttempts])
+  const deck = useMemo(
+    () => reconcileSentenceDeck(savedDeck, itemIds, initiallyCompleted),
+    [initiallyCompleted, itemIds, savedDeck],
+  )
+  const currentId = deck.order[deck.cursor]
+  const current = items.find((item) => item.id === currentId) ?? items[0]
+
+  useEffect(() => {
+    if (deck !== savedDeck) saveSentenceDeck(topic, deck)
+  }, [deck, saveSentenceDeck, savedDeck, topic])
 
   const prepare = (sentenceText: string) => {
     const tiles = splitIntoTiles(sentenceText).map((text, id) => ({ id, text }))
@@ -61,7 +77,7 @@ export function SentenceTrainer({
   }
 
   const next = () => {
-    setPosition((value) => (value + 1) % items.length)
+    saveSentenceDeck(topic, advanceSentenceDeck(deck, itemIds))
   }
 
   const showHint = () => {
@@ -84,10 +100,10 @@ export function SentenceTrainer({
           <p className="kicker">Соберите правильный порядок</p>
           <h1>Фразы</h1>
         </div>
-        <div className="counter-pill">{position + 1} / {items.length}</div>
+        <div className="counter-pill">{deck.cursor + 1} / {items.length} · круг {deck.cycle}</div>
       </section>
 
-      <TopicFilter value={topic} onChange={setTopic} />
+      <TopicFilter value={topic} onChange={selectTopic} />
 
       <article className="prompt-card">
         <div className="prompt-meta">

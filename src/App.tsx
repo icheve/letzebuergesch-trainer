@@ -12,7 +12,15 @@ import { useProgress } from './hooks/useProgress'
 export default function App() {
   const [tab, setTab] = useState<Tab>('home')
   const [online, setOnline] = useState(navigator.onLine)
-  const { progress, today, reviewCard, recordSentence, rateExam } = useProgress()
+  const {
+    progress,
+    today,
+    reviewCard,
+    recordSentence,
+    saveSentenceDeck,
+    selectSentenceTopic,
+    rateExam,
+  } = useProgress()
   const { canInstall, installed, install } = useInstallPrompt()
 
   useEffect(() => {
@@ -44,7 +52,14 @@ export default function App() {
         />
       )}
       {tab === 'words' && <WordTrainer progress={progress} reviewCard={reviewCard} />}
-      {tab === 'sentences' && <SentenceTrainer progress={progress} recordSentence={recordSentence} />}
+      {tab === 'sentences' && (
+        <SentenceTrainer
+          progress={progress}
+          recordSentence={recordSentence}
+          saveSentenceDeck={saveSentenceDeck}
+          selectTopic={selectSentenceTopic}
+        />
+      )}
       {tab === 'exam' && <ExamTrainer progress={progress} rateExam={rateExam} />}
       {tab === 'topics' && <TopicsPage progress={progress} />}
       <BottomNav active={tab} onChange={setTab} />

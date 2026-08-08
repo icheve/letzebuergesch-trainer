@@ -49,9 +49,17 @@ export interface DailyActivity {
   exam: number
 }
 
+export interface SentenceDeck {
+  order: string[]
+  cursor: number
+  cycle: number
+}
+
 export interface ProgressState {
   reviews: Record<string, CardReview>
   sentenceAttempts: Record<string, { correct: number; total: number }>
+  sentenceDecks: Record<string, SentenceDeck>
+  sentenceTopic: string
   examRatings: Record<string, 'hard' | 'good' | 'easy'>
   activity: DailyActivity[]
 }
