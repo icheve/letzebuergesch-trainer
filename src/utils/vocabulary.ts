@@ -1,8 +1,7 @@
 import type { CardReview, VocabularyCard, VocabularyContext } from '../types'
 
-export type VocabularyMode = 'production' | 'cloze' | 'listening'
-
-type PracticeCard = VocabularyCard & VocabularyContext
+export type VocabularyMode = 'meaning' | 'cloze' | 'listening'
+export type PracticeVocabularyCard = VocabularyCard & VocabularyContext
 
 export function normalizeVocabularyAnswer(value: string) {
   return value
@@ -15,37 +14,56 @@ export function normalizeVocabularyAnswer(value: string) {
     .toLocaleLowerCase('lb-LU')
 }
 
-export function dictionaryHeadword(value: string) {
-  return value.replace(/^(d’|d'|de |den )/i, '')
-}
-
 export function vocabularyMode(review: CardReview | undefined): VocabularyMode {
-  if (!review || review.repetitions === 0) return 'production'
-  return (['production', 'cloze', 'listening'] as const)[review.repetitions % 3]
+  if (!review || review.repetitions === 0) return 'meaning'
+  return (['meaning', 'cloze', 'listening'] as const)[review.repetitions % 3]
 }
 
-export function expectedVocabularyAnswers(card: PracticeCard, mode: VocabularyMode) {
-  if (mode === 'cloze') return [card.answer]
-  if (mode === 'listening') return [dictionaryHeadword(card.luxembourgish), card.luxembourgish]
-  return [card.luxembourgish]
+export function expectedVocabularyChoice(card: PracticeVocabularyCard, mode: VocabularyMode) {
+  return mode === 'cloze' ? card.answer : card.russian
 }
 
-export function isVocabularyAnswerCorrect(card: PracticeCard, mode: VocabularyMode, answer: string) {
-  const normalized = normalizeVocabularyAnswer(answer)
-  return expectedVocabularyAnswers(card, mode)
-    .some((expected) => normalizeVocabularyAnswer(expected) === normalized)
+export function isVocabularyChoiceCorrect(card: PracticeVocabularyCard, mode: VocabularyMode, choice: string) {
+  return normalizeVocabularyAnswer(choice) === normalizeVocabularyAnswer(expectedVocabularyChoice(card, mode))
 }
 
-export function clozeVocabularySentence(card: PracticeCard) {
-  return card.sentenceLux.replace(card.answer, '___')
+export function clozeVocabularySentence(card: PracticeVocabularyCard) {
+  const index = card.sentenceLux.toLocaleLowerCase('lb-LU')
+    .indexOf(card.answer.toLocaleLowerCase('lb-LU'))
+  if (index < 0) return card.sentenceLux
+  return `${card.sentenceLux.slice(0, index)}___${card.sentenceLux.slice(index + card.answer.length)}`
 }
 
-export function vocabularyHint(card: PracticeCard, mode: VocabularyMode) {
-  if (mode === 'listening') return `Значение: ${card.russian}`
-  const answer = expectedVocabularyAnswers(card, mode)[0]
-  const articleAndFirstLetter = answer.match(/^(d’|de |den )(.?)/i)
-  const visible = articleAndFirstLetter
-    ? `${articleAndFirstLetter[1]}${articleAndFirstLetter[2]}`
-    : answer.slice(0, 1)
-  return `Начало ответа: ${visible}…`
+function stableHash(value: string) {
+  let hash = 2166136261
+  for (const character of value) {
+    hash ^= character.codePointAt(0) ?? 0
+    hash = Math.imul(hash, 16777619)
+  }
+  return hash >>> 0
+}
+
+function stableOrder(values: string[], seed: string) {
+  return [...values].sort((left, right) => {
+    const difference = stableHash(`${seed}:${left}`) - stableHash(`${seed}:${right}`)
+    return difference || left.localeCompare(right, 'lb-LU')
+  })
+}
+
+export function vocabularyChoices(
+  card: PracticeVocabularyCard,
+  mode: VocabularyMode,
+  pool: PracticeVocabularyCard[],
+) {
+  const expected = expectedVocabularyChoice(card, mode)
+  const seen = new Set([normalizeVocabularyAnswer(expected)])
+  const candidates = pool.flatMap((candidate) => {
+    const value = mode === 'cloze' ? candidate.answer : candidate.russian
+    const normalized = normalizeVocabularyAnswer(value)
+    if (!value.trim() || seen.has(normalized)) return []
+    seen.add(normalized)
+    return [value]
+  })
+  const distractors = stableOrder(candidates, `${card.id}:${mode}:distractors`).slice(0, 3)
+  return stableOrder([expected, ...distractors], `${card.id}:${mode}:choices`)
 }

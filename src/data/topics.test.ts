@@ -5,7 +5,8 @@ describe('learning content', () => {
   it('contains the complete initial PDF corpus', () => {
     expect(topics).toHaveLength(3)
     expect(verifiedSentences).toHaveLength(73)
-    expect(allVocabulary).toHaveLength(39)
+    expect(allVocabulary).toHaveLength(50)
+    expect(allVocabulary.filter((item) => item.topicId === 'general')).toHaveLength(11)
   })
 
   it('keeps analogues separate from verified answers', () => {
@@ -32,7 +33,9 @@ describe('learning content', () => {
   })
 
   it('provides a usable personal context for every vocabulary card', () => {
-    expect(allVocabulary.every((item) => item.sentenceLux.includes(item.answer))).toBe(true)
+    expect(allVocabulary.every((item) =>
+      item.sentenceLux.toLocaleLowerCase('lb-LU').includes(item.answer.toLocaleLowerCase('lb-LU')),
+    )).toBe(true)
     expect(allVocabulary.every((item) => item.sentenceRu.trim().length > 0)).toBe(true)
   })
 })

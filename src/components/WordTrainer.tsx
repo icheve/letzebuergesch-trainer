@@ -1,22 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   BookOpenCheck,
+  Brain,
   Check,
   CircleX,
   ExternalLink,
   Headphones,
-  Keyboard,
-  Lightbulb,
 } from 'lucide-react'
-import { allVocabulary } from '../data/topics'
+import { allVocabulary, vocabularyTopicOptions } from '../data/topics'
 import type { ProgressState, Rating } from '../types'
 import { isDue, scheduleReview } from '../utils/srs'
 import {
   clozeVocabularySentence,
-  expectedVocabularyAnswers,
-  isVocabularyAnswerCorrect,
-  vocabularyHint,
+  expectedVocabularyChoice,
+  isVocabularyChoiceCorrect,
+  vocabularyChoices,
   vocabularyMode,
   type VocabularyMode,
 } from '../utils/vocabulary'
@@ -26,21 +25,21 @@ import { TopicFilter } from './TopicFilter'
 const modeMeta: Record<VocabularyMode, {
   kicker: string
   instruction: string
-  icon: typeof Keyboard
+  icon: typeof Brain
 }> = {
-  production: {
-    kicker: 'Активное воспроизведение',
-    instruction: 'Напишите словарную форму по-люксембуржски',
-    icon: Keyboard,
+  meaning: {
+    kicker: 'Активное узнавание',
+    instruction: 'Вспомните значение и выберите ответ',
+    icon: Brain,
   },
   cloze: {
     kicker: 'Слово в контексте',
-    instruction: 'Вставьте пропущенную форму',
+    instruction: 'Выберите слово для пропуска',
     icon: BookOpenCheck,
   },
   listening: {
     kicker: 'Аудирование LOD',
-    instruction: 'Прослушайте и напишите основное слово',
+    instruction: 'Прослушайте и выберите значение',
     icon: Headphones,
   },
 }
@@ -62,24 +61,30 @@ export function WordTrainer({
   const [topic, setTopic] = useState('all')
   const [completed, setCompleted] = useState(0)
   const [studying, setStudying] = useState(false)
-  const [answer, setAnswer] = useState('')
+  const [selectedChoice, setSelectedChoice] = useState('')
   const [result, setResult] = useState<'idle' | 'correct' | 'wrong'>('idle')
-  const [hintUsed, setHintUsed] = useState(false)
   const [hadError, setHadError] = useState(false)
   const [pendingRating, setPendingRating] = useState<Rating | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+
+  const vocabularyPool = useMemo(
+    () => allVocabulary.filter((card) => topic === 'all' || card.topicId === topic),
+    [topic],
+  )
 
   const cards = useMemo(() => {
-    const filtered = allVocabulary.filter((card) => topic === 'all' || card.topicId === topic)
-    const due = filtered.filter((card) => isDue(progress.reviews[card.id]))
-    return due.length ? due : [...filtered].sort((left, right) =>
+    const due = vocabularyPool.filter((card) => isDue(progress.reviews[card.id]))
+    return due.length ? due : [...vocabularyPool].sort((left, right) =>
       (progress.reviews[left.id]?.dueAt ?? 0) - (progress.reviews[right.id]?.dueAt ?? 0),
     )
-  }, [progress.reviews, topic])
+  }, [progress.reviews, vocabularyPool])
 
   const current = cards[0]
   const review = current ? progress.reviews[current.id] : undefined
   const mode = vocabularyMode(review)
+  const choices = useMemo(
+    () => current ? vocabularyChoices(current, mode, vocabularyPool) : [],
+    [current, mode, vocabularyPool],
+  )
   const known = allVocabulary.filter((card) => (progress.reviews[card.id]?.repetitions ?? 0) > 0).length
 
   useEffect(() => {
@@ -88,55 +93,50 @@ export function WordTrainer({
 
   useEffect(() => {
     setStudying(Boolean(review))
-    setAnswer('')
+    setSelectedChoice('')
     setResult('idle')
-    setHintUsed(false)
     setHadError(false)
     setPendingRating(null)
   }, [current?.id, review])
-
-  useEffect(() => {
-    if (studying && result === 'idle') inputRef.current?.focus()
-  }, [result, studying])
 
   if (!current) {
     return <main className="screen"><div className="empty-state">В этой теме пока нет лексики.</div></main>
   }
 
-  const expected = expectedVocabularyAnswers(current, mode)[0]
+  const expected = expectedVocabularyChoice(current, mode)
   const meta = modeMeta[mode]
   const ModeIcon = meta.icon
 
-  const check = () => {
-    if (!answer.trim()) return
-    const correct = isVocabularyAnswerCorrect(current, mode, answer)
-    if (!correct) {
+  const choose = (choice: string) => {
+    if (result !== 'idle') return
+    setSelectedChoice(choice)
+    if (!isVocabularyChoiceCorrect(current, mode, choice)) {
       setResult('wrong')
       setHadError(true)
       setPendingRating('again')
       return
     }
 
-    const rating: Rating = hadError ? 'again' : hintUsed ? 'hard' : 'good'
     setResult('correct')
-    setPendingRating(rating)
+    setPendingRating(hadError ? 'again' : 'good')
   }
 
   const retry = () => {
-    setAnswer('')
+    setSelectedChoice('')
     setResult('idle')
-    window.setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  const revealAnswer = () => {
+    setSelectedChoice('')
+    setHadError(true)
+    setPendingRating('again')
+    setResult('wrong')
   }
 
   const next = () => {
     if (!pendingRating) return
     reviewCard(current.id, pendingRating)
     setCompleted((value) => value + 1)
-  }
-
-  const beginPractice = () => {
-    setStudying(true)
-    window.setTimeout(() => inputRef.current?.focus(), 0)
   }
 
   return (
@@ -149,7 +149,7 @@ export function WordTrainer({
         <div className="mini-stat"><strong>{known}</strong><span>изучено</span></div>
       </section>
 
-      <TopicFilter value={topic} onChange={setTopic} />
+      <TopicFilter value={topic} onChange={setTopic} options={vocabularyTopicOptions} />
 
       <div className="session-progress" aria-label={`Выполнено ${completed} упражнений`}>
         <span style={{ width: `${Math.min(100, completed * 10)}%` }} />
@@ -173,11 +173,11 @@ export function WordTrainer({
             </div>
           </div>
           <div className="vocabulary-example">
-            <strong>В персональном контексте</strong>
+            <strong>В живом контексте</strong>
             <p lang="lb">{current.sentenceLux}</p>
             <small>{current.sentenceRu}</small>
           </div>
-          <button type="button" className="primary-button wide" onClick={beginPractice}>
+          <button type="button" className="primary-button wide" onClick={() => setStudying(true)}>
             Проверить себя <ArrowRight size={18} />
           </button>
         </article>
@@ -190,64 +190,71 @@ export function WordTrainer({
           </div>
 
           <div className="vocabulary-prompt">
-            {mode === 'production' && (
+            {mode === 'meaning' && (
               <>
-                <p className="prompt-label">Переведите на люксембуржский</p>
-                <h2>{current.russian}</h2>
-                <small>Для существительных вводите артикль вместе со словом.</small>
+                <p className="prompt-label">Какое значение подходит?</p>
+                <h2 lang="lb">{current.luxembourgish}</h2>
+                <div className="lod-audio-row">
+                  <AudioButton text={current.luxembourgish} audioUrl={current.lodAudioUrl} label="Произношение LOD" />
+                </div>
               </>
             )}
             {mode === 'cloze' && (
               <>
                 <p className="vocabulary-context-translation">{current.sentenceRu}</p>
-                <p className="prompt-label">Заполните пропуск</p>
+                <p className="prompt-label">Какое слово пропущено?</p>
                 <h2 lang="lb">{clozeVocabularySentence(current)}</h2>
               </>
             )}
             {mode === 'listening' && (
               <>
-                <p className="prompt-label">Сначала слушайте, затем отвечайте</p>
-                <AudioButton text={current.luxembourgish} audioUrl={current.lodAudioUrl} label="Воспроизвести LOD" />
-                <small>Можно написать слово без артикля.</small>
+                <p className="prompt-label">Сначала слушайте, затем выбирайте</p>
+                <div className="lod-audio-row">
+                  <AudioButton text={current.luxembourgish} audioUrl={current.lodAudioUrl} label="Воспроизвести LOD" />
+                </div>
+                <small>Какое значение у услышанного слова?</small>
               </>
             )}
           </div>
 
-          <form className="vocabulary-answer-form" onSubmit={(event) => { event.preventDefault(); check() }}>
-            <label htmlFor="vocabulary-answer">Ваш ответ</label>
-            <input
-              ref={inputRef}
-              id="vocabulary-answer"
-              value={answer}
-              onChange={(event) => { setAnswer(event.target.value); if (result !== 'idle') setResult('idle') }}
-              disabled={result === 'correct'}
-              autoComplete="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              placeholder="Введите ответ…"
-              className={result === 'wrong' ? 'wrong' : result === 'correct' ? 'correct' : ''}
-            />
-            {hintUsed && result === 'idle' && <p className="vocabulary-hint"><Lightbulb size={15} /> {vocabularyHint(current, mode)}</p>}
-          </form>
+          <div className="vocabulary-choice-grid" role="group" aria-label="Варианты ответа">
+            {choices.map((choice) => {
+              const isSelected = selectedChoice === choice
+              const isCorrect = result !== 'idle' && choice === expected
+              const isWrong = result === 'wrong' && isSelected && choice !== expected
+              return (
+                <button
+                  type="button"
+                  key={choice}
+                  className={`${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''} ${isSelected ? 'selected' : ''}`.trim()}
+                  onClick={() => choose(choice)}
+                  disabled={result !== 'idle'}
+                  lang={mode === 'cloze' ? 'lb' : 'ru'}
+                >
+                  {choice}
+                </button>
+              )
+            })}
+          </div>
 
           {result === 'wrong' && (
             <section className="vocabulary-result wrong">
               <div className="vocabulary-result-title"><CircleX size={20} /><strong>Пока неверно</strong></div>
-              <p>Правильный ответ: <b lang="lb">{expected}</b></p>
-              {mode === 'cloze' && <p className="dictionary-form">Словарная форма: <b lang="lb">{current.luxembourgish}</b></p>}
+              <p>Правильный ответ: <b lang={mode === 'cloze' ? 'lb' : 'ru'}>{expected}</b></p>
+              <p className="dictionary-form">Словарная форма: <b lang="lb">{current.luxembourgish}</b></p>
               <div className="vocabulary-result-context">
                 <span lang="lb">{current.sentenceLux}</span>
                 <small>{current.sentenceRu}</small>
               </div>
-              <button type="button" className="primary-button wide" onClick={retry}>Написать правильно ещё раз</button>
+              <button type="button" className="primary-button wide" onClick={retry}>Попробовать ещё раз</button>
             </section>
           )}
 
           {result === 'correct' && pendingRating && (
             <section className="vocabulary-result correct">
               <div className="vocabulary-result-title"><Check size={20} /><strong>{hadError ? 'Теперь правильно' : 'Правильно'}</strong></div>
-              <h3 lang="lb">{expected}</h3>
-              {mode !== 'production' && <p className="dictionary-form">Словарная форма: <b lang="lb">{current.luxembourgish}</b></p>}
+              <h3 lang="lb">{current.luxembourgish}</h3>
+              <p className="dictionary-form">{current.russian}</p>
               <div className="vocabulary-result-context">
                 <span lang="lb">{current.sentenceLux}</span>
                 <small>{current.sentenceRu}</small>
@@ -267,10 +274,9 @@ export function WordTrainer({
 
           {result === 'idle' && (
             <div className="vocabulary-actions">
-              <button type="button" className="text-button" onClick={() => setHintUsed(true)} disabled={hintUsed}>
-                <Lightbulb size={17} /> {hintUsed ? 'Подсказка открыта' : 'Подсказка'}
+              <button type="button" className="text-button centered" onClick={revealAnswer}>
+                Не помню — показать ответ
               </button>
-              <button type="button" className="primary-button" onClick={check} disabled={!answer.trim()}>Проверить</button>
             </div>
           )}
         </article>

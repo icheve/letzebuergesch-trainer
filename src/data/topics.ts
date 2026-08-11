@@ -1,4 +1,5 @@
 import type { SentenceItem, Topic, VocabularyCard } from '../types'
+import { generalVocabulary } from './generalVocabulary'
 import { vocabularyContexts } from './vocabularyContexts'
 
 const sentence = (
@@ -171,14 +172,26 @@ const housing: Topic = {
 
 export const topics: Topic[] = [homeland, languages, housing]
 
-export const allVocabulary = topics.flatMap((topic) =>
-  topic.vocabulary.map((card) => ({
+export const vocabularyTopicOptions = [
+  { id: 'general', titleRu: 'Общее' },
+  ...topics.map(({ id, titleRu }) => ({ id, titleRu })),
+]
+
+export const allVocabulary = [
+  ...topics.flatMap((topic) =>
+    topic.vocabulary.map((card) => ({
+      ...card,
+      ...vocabularyContexts[card.id],
+      topicId: topic.id,
+      topicTitle: topic.titleRu,
+    })),
+  ),
+  ...generalVocabulary.map((card) => ({
     ...card,
-    ...vocabularyContexts[card.id],
-    topicId: topic.id,
-    topicTitle: topic.titleRu,
+    topicId: 'general',
+    topicTitle: 'Общее',
   })),
-)
+]
 
 export const verifiedSentences = topics.flatMap((topic) =>
   topic.sentences.map((item) => ({ ...item, topicId: topic.id, topicTitle: topic.titleRu, kind: 'verified' as const })),

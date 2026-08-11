@@ -670,6 +670,14 @@ h3 {
   cursor: pointer;
 }
 
+.audio-button:disabled {
+  border-color: #dddeda;
+  color: #8d9591;
+  background: #f4f4f1;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
 .primary-button {
   display: inline-flex;
   align-items: center;
@@ -1034,6 +1042,62 @@ h3 {
   line-height: 1.45;
 }
 
+.vocabulary-prompt .lod-audio-row {
+  margin-top: 14px;
+}
+
+.vocabulary-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+  margin: 0 0 4px;
+}
+
+.vocabulary-choice-grid button {
+  width: 100%;
+  min-height: 49px;
+  padding: 11px 14px;
+  border: 2px solid #d5d9d3;
+  border-radius: 13px;
+  color: var(--ink);
+  background: #fffefa;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.vocabulary-choice-grid button:hover:not(:disabled),
+.vocabulary-choice-grid button:focus-visible {
+  border-color: var(--blue);
+  background: #f1f9fb;
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.vocabulary-choice-grid button.selected {
+  border-color: var(--blue);
+}
+
+.vocabulary-choice-grid button.correct {
+  border-color: #69a28f;
+  color: #216b58;
+  background: #e9f6ef;
+}
+
+.vocabulary-choice-grid button.wrong {
+  border-color: #d86d72;
+  color: #9d383e;
+  background: #fff0ed;
+}
+
+.vocabulary-choice-grid button:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
 .vocabulary-answer-form {
   display: flex;
   flex-direction: column;
@@ -1094,6 +1158,11 @@ h3 {
   gap: 10px;
   margin-top: auto;
   padding-top: 18px;
+}
+
+.vocabulary-actions .centered {
+  width: 100%;
+  justify-content: center;
 }
 
 .vocabulary-actions .text-button:disabled {
