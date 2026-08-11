@@ -113,6 +113,10 @@ export function SentenceTrainer({
           <span>{current.kind === 'analogue' ? 'Дополнительная практика' : current.topicTitle}</span>
           <span>{attempts ? `${attempts.correct}/${attempts.total} верно` : current.kind === 'analogue' ? 'аналог' : 'новая фраза'}</span>
         </div>
+        <div className="sentence-question">
+          <span>Вопрос на люксембургском</span>
+          <p lang="lb">{current.questionLux}</p>
+        </div>
         <p className="prompt-label">Скажите по-люксембуржски</p>
         <h2>{current.answerRu}</h2>
       </article>

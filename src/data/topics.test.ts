@@ -19,7 +19,11 @@ describe('learning content', () => {
     const ids = [...allVocabulary, ...allSentences].map((item) => item.id)
     expect(new Set(ids).size).toBe(ids.length)
     expect(allVocabulary.every((item) => item.russian.trim().length > 0)).toBe(true)
-    expect(allSentences.every((item) => item.answerRu.trim().length > 0 && item.questionRu.trim().length > 0)).toBe(true)
+    expect(allSentences.every((item) =>
+      item.answerRu.trim().length > 0 &&
+      item.questionLux.trim().length > 0 &&
+      item.questionRu.trim().length > 0,
+    )).toBe(true)
   })
 
   it('connects every vocabulary card to an official LOD recording', () => {
