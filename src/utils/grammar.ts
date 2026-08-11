@@ -18,6 +18,21 @@ export function grammarAnswerCorrect(exercise: GrammarExercise, answer: string) 
   return accepted.some((item) => normalizeGrammarAnswer(item) === normalized)
 }
 
+export function normalizeSpeechAnswer(value: string) {
+  return normalizeGrammarAnswer(value)
+    .replace(/[’']/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+export function speechAnswerCorrect(exercise: GrammarExercise, transcript: string) {
+  const accepted = [exercise.answerLux, ...(exercise.acceptedAnswers ?? [])]
+  const normalized = normalizeSpeechAnswer(transcript)
+  return normalized.length > 0
+    && accepted.some((item) => normalizeSpeechAnswer(item) === normalized)
+}
+
 export function firstGrammarError(answer: string, expected: string) {
   const actualTokens = normalizeGrammarAnswer(answer).split(' ').filter(Boolean)
   const expectedTokens = normalizeGrammarAnswer(expected).split(' ').filter(Boolean)
@@ -28,6 +43,21 @@ export function firstGrammarError(answer: string, expected: string) {
     if (!actualTokens[index]) return `Добавьте «${expectedTokens[index]}» в позицию ${index + 1}.`
     if (!expectedTokens[index]) return `Уберите лишнее «${actualTokens[index]}» в позиции ${index + 1}.`
     return `Позиция ${index + 1}: «${actualTokens[index]}» → «${expectedTokens[index]}».`
+  }
+
+  return ''
+}
+
+export function firstSpeechError(transcript: string, expected: string) {
+  const actualTokens = normalizeSpeechAnswer(transcript).split(' ').filter(Boolean)
+  const expectedTokens = normalizeSpeechAnswer(expected).split(' ').filter(Boolean)
+  const length = Math.max(actualTokens.length, expectedTokens.length)
+
+  for (let index = 0; index < length; index += 1) {
+    if (actualTokens[index] === expectedTokens[index]) continue
+    if (!actualTokens[index]) return `Не распознано слово «${expectedTokens[index]}» в позиции ${index + 1}.`
+    if (!expectedTokens[index]) return `Распознано лишнее слово «${actualTokens[index]}» в позиции ${index + 1}.`
+    return `Позиция ${index + 1}: распознано «${actualTokens[index]}», ожидается «${expectedTokens[index]}».`
   }
 
   return ''

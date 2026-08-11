@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest'
 import type { GrammarExercise } from '../data/grammarLessons'
 import {
   firstGrammarError,
+  firstSpeechError,
   grammarAnswerCorrect,
   grammarProgressLabel,
   nextGrammarProgress,
   normalizeGrammarAnswer,
+  normalizeSpeechAnswer,
+  speechAnswerCorrect,
 } from './grammar'
 
 const exercise: GrammarExercise = {
@@ -25,6 +28,15 @@ describe('grammar practice', () => {
   it('points to the first incorrect token', () => {
     expect(firstGrammarError('Ech ginn d’Stad', exercise.answerLux)).toBe('Позиция 3: «d’stad» → «an».')
     expect(firstGrammarError('Ech ginn an', exercise.answerLux)).toBe('Добавьте «d’stad» в позицию 4.')
+  })
+
+  it('checks a speech transcript without penalizing punctuation or apostrophe style', () => {
+    expect(normalizeSpeechAnswer(" ECH ginn an d' Stad! ")).toBe('ech ginn an d stad')
+    expect(speechAnswerCorrect(exercise, 'ech ginn an d Stad')).toBe(true)
+    expect(speechAnswerCorrect(exercise, 'ech ginn an Stad')).toBe(false)
+    expect(firstSpeechError('ech ginn an Stad', exercise.answerLux)).toBe(
+      'Позиция 4: распознано «stad», ожидается «d».',
+    )
   })
 
   it('schedules stronger lessons farther into the future', () => {

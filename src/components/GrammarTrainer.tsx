@@ -28,8 +28,10 @@ import {
 import type { GrammarSession, ProgressState } from '../types'
 import {
   firstGrammarError,
+  firstSpeechError,
   grammarAnswerCorrect,
   grammarProgressLabel,
+  speechAnswerCorrect,
 } from '../utils/grammar'
 import { shuffle, splitIntoTiles } from '../utils/text'
 import { AudioButton } from './AudioButton'
@@ -271,6 +273,9 @@ function ExercisePractice({
   const [earnedPoint, setEarnedPoint] = useState(false)
   const [available, setAvailable] = useState<OrderTile[]>([])
   const [selected, setSelected] = useState<OrderTile[]>([])
+  const [speechTranscript, setSpeechTranscript] = useState('')
+  const [speechAttempt, setSpeechAttempt] = useState(0)
+  const [speechRecording, setSpeechRecording] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const exercise = lesson.exercises[index]
   const meta = exerciseMeta[exercise.kind]
@@ -282,6 +287,9 @@ function ExercisePractice({
     setStatus('idle')
     setHadError(false)
     setEarnedPoint(false)
+    setSpeechTranscript('')
+    setSpeechAttempt(0)
+    setSpeechRecording(false)
     if (exercise.kind === 'order') {
       const tiles = splitIntoTiles(exercise.answerLux).map((text, tileIndex) => ({ id: tileIndex, text }))
       setAvailable(shuffle(tiles))
@@ -325,10 +333,19 @@ function ExercisePractice({
     if (!successful) {
       setHadError(true)
       setEarnedPoint(false)
+      setSpeechTranscript('')
+      setSpeechAttempt((attempt) => attempt + 1)
+      setSpeechRecording(false)
       setStatus('idle')
       return
     }
     setEarnedPoint(!hadError)
+    setStatus('correct')
+  }
+
+  const acceptSpeechOverride = () => {
+    setHadError(true)
+    setEarnedPoint(false)
     setStatus('correct')
   }
 
@@ -345,6 +362,11 @@ function ExercisePractice({
   }
 
   const error = status === 'wrong' ? firstGrammarError(currentAnswer, exercise.answerLux) : ''
+  const hasSpeechTranscript = speechTranscript.trim().length > 0
+  const speechCorrect = hasSpeechTranscript ? speechAnswerCorrect(exercise, speechTranscript) : undefined
+  const speechError = speechCorrect === false
+    ? firstSpeechError(speechTranscript, exercise.answerLux)
+    : ''
 
   return (
     <main className="screen grammar-screen grammar-practice-screen">
@@ -412,25 +434,72 @@ function ExercisePractice({
           </label>
         )}
 
-        {exercise.kind === 'speak' && status === 'idle' && (
+        {exercise.kind === 'speak' && status !== 'correct' && (
           <div className="grammar-speaking-workspace">
-            <VoiceRecorder />
-            <p>Скажите фразу без текста. Запись необязательна, но помогает услышать себя.</p>
-            <button type="button" className="primary-button wide" onClick={revealSpeech}>Показать образец ответа</button>
-          </div>
-        )}
+            <VoiceRecorder
+              key={`${exercise.id}-${speechAttempt}`}
+              onTranscriptChange={setSpeechTranscript}
+              onRecordingChange={setSpeechRecording}
+            />
+            {status === 'idle' && (
+              <>
+                <p>Скажите фразу без текста. Браузер попробует распознать люксембуржскую речь и проверить слова.</p>
+                <button
+                  type="button"
+                  className="primary-button wide"
+                  onClick={revealSpeech}
+                  disabled={speechRecording}
+                >
+                  {speechRecording ? 'Сначала остановите запись' : 'Проверить и показать образец'}
+                </button>
+              </>
+            )}
 
-        {exercise.kind === 'speak' && status === 'revealed' && (
-          <section className="grammar-speech-reveal">
-            <p className="prompt-label">Образец</p>
-            <h3 lang="lb">{exercise.answerLux}</h3>
-            <AudioButton text={exercise.answerLux} label="Прослушать образец" />
-            <p>Сравните со своим ответом.</p>
-            <div>
-              <button type="button" className="secondary-button" onClick={() => rateSpeech(false)}>Нужно повторить</button>
-              <button type="button" className="primary-button" onClick={() => rateSpeech(true)}>Получилось</button>
-            </div>
-          </section>
+            {status === 'revealed' && (
+              <section className="grammar-speech-reveal">
+                <p className="prompt-label">Образец</p>
+                <h3 lang="lb">{exercise.answerLux}</h3>
+                <AudioButton text={exercise.answerLux} label="Прослушать образец" />
+
+                {speechCorrect === true && (
+                  <div className="grammar-speech-check success">
+                    <CheckCircle2 size={19} />
+                    <p><strong>Слова распознаны верно.</strong> Ответ совпадает с образцом.</p>
+                  </div>
+                )}
+                {speechCorrect === false && (
+                  <div className="grammar-speech-check error">
+                    <CircleAlert size={19} />
+                    <p><strong>Есть отличие.</strong> {speechError || 'Распознанный текст не совпадает с образцом.'}</p>
+                  </div>
+                )}
+                {!hasSpeechTranscript && (
+                  <div className="grammar-speech-check manual">
+                    <Mic size={19} />
+                    <p><strong>Автопроверка недоступна.</strong> Прослушайте запись и оцените ответ вручную.</p>
+                  </div>
+                )}
+
+                <div className="grammar-speech-actions">
+                  {speechCorrect === true && (
+                    <button type="button" className="primary-button" onClick={() => rateSpeech(true)}>Засчитать ответ</button>
+                  )}
+                  {speechCorrect === false && (
+                    <>
+                      <button type="button" className="primary-button" onClick={() => rateSpeech(false)}>Записать ещё раз</button>
+                      <button type="button" className="secondary-button" onClick={acceptSpeechOverride}>Распознано неточно — засчитать</button>
+                    </>
+                  )}
+                  {!hasSpeechTranscript && (
+                    <>
+                      <button type="button" className="secondary-button" onClick={() => rateSpeech(false)}>Нужно повторить</button>
+                      <button type="button" className="primary-button" onClick={() => rateSpeech(true)}>Получилось</button>
+                    </>
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
         )}
 
         {status === 'wrong' && (
