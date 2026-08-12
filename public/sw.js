@@ -1,5 +1,6 @@
-const CACHE = 'letz-28-v2'
+const CACHE = 'letz-28-v3'
 const SHELL = ['./manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png']
+const LOD_AUDIO_MANIFEST = './audio/lod/manifest.json'
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -10,6 +11,12 @@ self.addEventListener('install', (event) => {
     const html = await response.text()
     const assets = [...html.matchAll(/(?:src|href)="(\.\/assets\/[^\"]+)"/g)].map((match) => match[1])
     if (assets.length) await cache.addAll(assets)
+
+    const audioManifestResponse = await fetch(LOD_AUDIO_MANIFEST)
+    if (!audioManifestResponse.ok) throw new Error('LOD audio manifest is unavailable')
+    await cache.put(LOD_AUDIO_MANIFEST, audioManifestResponse.clone())
+    const audioFiles = await audioManifestResponse.json()
+    await cache.addAll(audioFiles.map((file) => `./audio/lod/${file}`))
   })())
   self.skipWaiting()
 })

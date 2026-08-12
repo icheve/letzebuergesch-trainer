@@ -15,6 +15,7 @@ const card: VocabularyCard & VocabularyContext = {
   russian: 'родина',
   lodId: 'HEEMECHT1',
   lodAudioUrl: 'https://lod.lu/uploads/AAC/heemecht1.m4a',
+  lodCachedAudioUrl: './audio/lod/heemecht1.m4a',
   sentenceLux: 'Meng Heemecht ass Russland.',
   sentenceRu: 'Моя родина — Россия.',
   answer: 'Heemecht',

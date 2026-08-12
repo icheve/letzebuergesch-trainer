@@ -17,6 +17,7 @@ const word = (id: string, luxembourgish: string, russian: string, lodId: string)
   russian,
   lodId,
   lodAudioUrl: `https://lod.lu/uploads/AAC/${lodId.toLocaleLowerCase('lb-LU')}.m4a`,
+  lodCachedAudioUrl: `./audio/lod/${lodId.toLocaleLowerCase('lb-LU')}.m4a`,
 })
 
 const homeland: Topic = {

@@ -5,10 +5,12 @@ import { playRecordedAudio } from '../utils/text'
 export function AudioButton({
   text,
   audioUrl,
+  fallbackAudioUrl,
   label = 'Озвучка LOD.lu',
 }: {
   text: string
   audioUrl?: string
+  fallbackAudioUrl?: string
   label?: string
 }) {
   const [failed, setFailed] = useState(false)
@@ -30,7 +32,7 @@ export function AudioButton({
 
   const play = async () => {
     setFailed(false)
-    const started = await playRecordedAudio(audioUrl)
+    const started = await playRecordedAudio(audioUrl, fallbackAudioUrl)
     if (!started) setFailed(true)
   }
 

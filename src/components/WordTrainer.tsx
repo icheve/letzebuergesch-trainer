@@ -166,7 +166,11 @@ export function WordTrainer({
             <h2 lang="lb">{current.luxembourgish}</h2>
             <p className="vocabulary-translation">{current.russian}</p>
             <div className="lod-audio-row">
-              <AudioButton text={current.luxembourgish} audioUrl={current.lodAudioUrl} />
+              <AudioButton
+                text={current.luxembourgish}
+                audioUrl={current.lodCachedAudioUrl}
+                fallbackAudioUrl={current.lodAudioUrl}
+              />
               <a href={`https://lod.lu/artikel/${current.lodId}`} target="_blank" rel="noreferrer">
                 Статья в LOD <ExternalLink size={13} />
               </a>
@@ -195,7 +199,12 @@ export function WordTrainer({
                 <p className="prompt-label">Какое значение подходит?</p>
                 <h2 lang="lb">{current.luxembourgish}</h2>
                 <div className="lod-audio-row">
-                  <AudioButton text={current.luxembourgish} audioUrl={current.lodAudioUrl} label="Произношение LOD" />
+                  <AudioButton
+                    text={current.luxembourgish}
+                    audioUrl={current.lodCachedAudioUrl}
+                    fallbackAudioUrl={current.lodAudioUrl}
+                    label="Произношение LOD"
+                  />
                 </div>
               </>
             )}
@@ -210,7 +219,12 @@ export function WordTrainer({
               <>
                 <p className="prompt-label">Сначала слушайте, затем выбирайте</p>
                 <div className="lod-audio-row">
-                  <AudioButton text={current.luxembourgish} audioUrl={current.lodAudioUrl} label="Воспроизвести LOD" />
+                  <AudioButton
+                    text={current.luxembourgish}
+                    audioUrl={current.lodCachedAudioUrl}
+                    fallbackAudioUrl={current.lodAudioUrl}
+                    label="Воспроизвести LOD"
+                  />
                 </div>
                 <small>Какое значение у услышанного слова?</small>
               </>
@@ -260,7 +274,11 @@ export function WordTrainer({
                 <small>{current.sentenceRu}</small>
               </div>
               <div className="lod-audio-row">
-                <AudioButton text={current.luxembourgish} audioUrl={current.lodAudioUrl} />
+                <AudioButton
+                  text={current.luxembourgish}
+                  audioUrl={current.lodCachedAudioUrl}
+                  fallbackAudioUrl={current.lodAudioUrl}
+                />
                 <a href={`https://lod.lu/artikel/${current.lodId}`} target="_blank" rel="noreferrer">
                   LOD <ExternalLink size={13} />
                 </a>

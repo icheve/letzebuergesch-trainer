@@ -16,6 +16,7 @@ const lodWord = (
   russian,
   lodId,
   lodAudioUrl: `https://lod.lu/uploads/AAC/${lodId.toLocaleLowerCase('lb-LU')}.m4a`,
+  lodCachedAudioUrl: `./audio/lod/${lodId.toLocaleLowerCase('lb-LU')}.m4a`,
   sentenceLux,
   sentenceRu,
   answer,

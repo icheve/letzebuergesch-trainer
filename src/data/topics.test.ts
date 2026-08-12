@@ -29,6 +29,7 @@ describe('learning content', () => {
 
   it('connects every vocabulary card to an official LOD recording', () => {
     expect(allVocabulary.every((item) => /^https:\/\/lod\.lu\/uploads\/AAC\/[a-z0-9]+\.m4a$/.test(item.lodAudioUrl))).toBe(true)
+    expect(allVocabulary.every((item) => /^\.\/audio\/lod\/[a-z0-9]+\.m4a$/.test(item.lodCachedAudioUrl))).toBe(true)
     expect(allVocabulary.every((item) => item.lodId.length > 0)).toBe(true)
   })
 

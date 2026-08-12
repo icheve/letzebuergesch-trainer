@@ -20,7 +20,7 @@ export function shuffle<T>(items: T[], random = Math.random) {
 
 let activeRecording: HTMLAudioElement | null = null
 
-export async function playRecordedAudio(url: string) {
+async function playAudioUrl(url: string) {
   activeRecording?.pause()
 
   const recording = new Audio(url)
@@ -36,4 +36,10 @@ export async function playRecordedAudio(url: string) {
     if (activeRecording === recording) activeRecording = null
     return false
   }
+}
+
+export async function playRecordedAudio(url: string, fallbackUrl?: string) {
+  const started = await playAudioUrl(url)
+  if (started || !fallbackUrl || fallbackUrl === url) return started
+  return playAudioUrl(fallbackUrl)
 }

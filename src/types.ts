@@ -8,6 +8,7 @@ export interface VocabularyCard {
   russian: string
   lodId: string
   lodAudioUrl: string
+  lodCachedAudioUrl: string
   exampleLux?: string
   exampleRu?: string
 }
