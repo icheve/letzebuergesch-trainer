@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { DailyActivity, GrammarSession, ProgressState, Rating, SentenceDeck } from '../types'
+import type { DailyActivity, GrammarSession, PicturePracticeMode, ProgressState, Rating, SentenceDeck } from '../types'
 import { nextGrammarProgress } from '../utils/grammar'
 import { scheduleReview } from '../utils/srs'
 
@@ -11,6 +11,7 @@ const EMPTY: ProgressState = {
   sentenceTopic: 'all',
   examRatings: {},
   grammarLessons: {},
+  picturePractice: {},
   activity: [],
 }
 
@@ -30,6 +31,7 @@ function loadProgress(): ProgressState {
       sentenceTopic: parsed.sentenceTopic ?? 'all',
       grammarLessons: parsed.grammarLessons ?? {},
       grammarSession: parsed.grammarSession,
+      picturePractice: parsed.picturePractice ?? {},
       activity: (parsed.activity ?? []).map((day: DailyActivity) => ({ ...day, grammar: day.grammar ?? 0 })),
     }
   } catch {
@@ -112,6 +114,29 @@ export function useProgress() {
     addActivity('grammar')
   }, [addActivity])
 
+  const completePicturePractice = useCallback((pictureId: string, mode: PicturePracticeMode, coverage: number) => {
+    setProgress((current) => {
+      const previous = current.picturePractice[pictureId]
+      const completedModes = previous?.completedModes.includes(mode)
+        ? previous.completedModes
+        : [...(previous?.completedModes ?? []), mode]
+      return {
+        ...current,
+        picturePractice: {
+          ...current.picturePractice,
+          [pictureId]: {
+            attempts: (previous?.attempts ?? 0) + 1,
+            bestCoverage: Math.max(previous?.bestCoverage ?? 0, coverage),
+            lastCoverage: coverage,
+            completedModes,
+            lastCompletedAt: Date.now(),
+          },
+        },
+      }
+    })
+    addActivity('exam')
+  }, [addActivity])
+
   const resetProgress = useCallback(() => {
     setProgress(EMPTY)
   }, [])
@@ -130,6 +155,7 @@ export function useProgress() {
     rateExam,
     saveGrammarSession,
     completeGrammarLesson,
+    completePicturePractice,
     resetProgress,
   }
 }

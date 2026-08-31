@@ -1,5 +1,15 @@
-const CACHE = 'letz-28-v4'
-const SHELL = ['./manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png']
+const CACHE = 'letz-28-v5'
+const SHELL = [
+  './manifest.webmanifest',
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './images/picture-training/sport-park.jpg',
+  './images/picture-training/london.jpg',
+  './images/picture-training/living-room.jpg',
+  './images/picture-training/rome.jpg',
+  './images/picture-training/garden-argument.jpg',
+]
 const LOD_AUDIO_MANIFEST = './audio/lod/manifest.json'
 
 self.addEventListener('install', (event) => {

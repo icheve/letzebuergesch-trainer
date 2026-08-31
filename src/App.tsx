@@ -22,6 +22,7 @@ export default function App() {
     rateExam,
     saveGrammarSession,
     completeGrammarLesson,
+    completePicturePractice,
   } = useProgress()
   const { canInstall, installed, install } = useInstallPrompt()
 
@@ -70,7 +71,7 @@ export default function App() {
           completeGrammarLesson={completeGrammarLesson}
         />
       )}
-      {tab === 'topics' && <TopicsPage progress={progress} />}
+      {tab === 'topics' && <TopicsPage progress={progress} completePicturePractice={completePicturePractice} />}
       <BottomNav active={tab} onChange={setTab} />
     </div>
   )

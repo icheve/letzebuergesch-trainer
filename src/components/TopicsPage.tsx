@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { BookOpen, ChevronDown, ChevronUp, Clock3, CookingPot, Dumbbell, Gift, Home, Languages, MapPin, MessageSquareText, MonitorSmartphone, Volleyball } from 'lucide-react'
+import { BookOpen, ChevronDown, ChevronUp, Clock3, CookingPot, Dumbbell, Gift, Home, Images, Languages, MapPin, MessageSquareText, MonitorSmartphone, Volleyball } from 'lucide-react'
 import { analogueSentences, topics } from '../data/topics'
-import type { ProgressState, Topic } from '../types'
+import type { PicturePracticeMode, ProgressState, Topic } from '../types'
+import { PictureTrainer } from './PictureTrainer'
 
 const icons = {
   home: Home,
@@ -66,33 +67,50 @@ function TopicCard({ topic, progress, expanded, onToggle }: {
   )
 }
 
-export function TopicsPage({ progress }: { progress: ProgressState }) {
+export function TopicsPage({
+  progress,
+  completePicturePractice,
+}: {
+  progress: ProgressState
+  completePicturePractice: (pictureId: string, mode: PicturePracticeMode, coverage: number) => void
+}) {
   const [expanded, setExpanded] = useState('homeland')
+  const [section, setSection] = useState<'oral' | 'pictures'>('oral')
   const totalSentences = topics.reduce((sum, topic) => sum + topic.sentences.length, 0)
   const totalWords = topics.reduce((sum, topic) => sum + topic.vocabulary.length, 0)
 
   return (
     <main className="screen topics-screen">
       <section className="screen-heading">
-        <div><p className="kicker">База из Ваших PDF</p><h1>Темы</h1></div>
-        <div className="counter-pill">{topics.length} тем</div>
+        <div><p className="kicker">Подготовка устного ответа</p><h1>Темы</h1></div>
+        <div className="counter-pill">{section === 'oral' ? `${topics.length} тем` : '5 картинок'}</div>
       </section>
-      <p className="topics-intro">В приложении уже <strong>{totalSentences} персональных ответа</strong>, <strong>{totalWords} слов</strong> и <strong>{analogueSentences.length} дополнительных фраз</strong>. Новые PDF можно добавлять в папку проекта.</p>
-      <div className="topics-list">
-        {topics.map((topic) => (
-          <TopicCard
-            key={topic.id}
-            topic={topic}
-            progress={progress}
-            expanded={expanded === topic.id}
-            onToggle={() => setExpanded((value) => value === topic.id ? '' : topic.id)}
-          />
-        ))}
+      <div className="section-switch" role="tablist" aria-label="Раздел тем">
+        <button type="button" className={section === 'oral' ? 'active' : ''} onClick={() => setSection('oral')}><MessageSquareText size={18} /> Устные темы</button>
+        <button type="button" className={section === 'pictures' ? 'active' : ''} onClick={() => setSection('pictures')}><Images size={18} /> Картинки</button>
       </div>
-      <aside className="content-note">
-        <BookOpen size={21} />
-        <div><strong>Персональные формулировки</strong><p>Упражнения основаны на Ваших готовых ответах из PDF и OneNote. Дополнительные аналоги добавляются отдельно и не заменяют персональный материал.</p></div>
-      </aside>
+      {section === 'oral' ? (
+        <>
+          <p className="topics-intro">В приложении уже <strong>{totalSentences} персональных ответа</strong>, <strong>{totalWords} слов</strong> и <strong>{analogueSentences.length} дополнительных фраз</strong>. Новые PDF можно добавлять в папку проекта.</p>
+          <div className="topics-list">
+            {topics.map((topic) => (
+              <TopicCard
+                key={topic.id}
+                topic={topic}
+                progress={progress}
+                expanded={expanded === topic.id}
+                onToggle={() => setExpanded((value) => value === topic.id ? '' : topic.id)}
+              />
+            ))}
+          </div>
+          <aside className="content-note">
+            <BookOpen size={21} />
+            <div><strong>Персональные формулировки</strong><p>Упражнения основаны на Ваших готовых ответах из PDF и OneNote. Дополнительные аналоги добавляются отдельно и не заменяют персональный материал.</p></div>
+          </aside>
+        </>
+      ) : (
+        <PictureTrainer progress={progress.picturePractice} onComplete={completePicturePractice} />
+      )}
     </main>
   )
 }

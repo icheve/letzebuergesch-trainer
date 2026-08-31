@@ -36,6 +36,7 @@ import {
 import { shuffle, splitIntoTiles } from '../utils/text'
 import { AudioButton } from './AudioButton'
 import { ExamTrainer } from './ExamTrainer'
+import { ExamCheatSheets } from './ExamCheatSheets'
 import { VoiceRecorder } from './VoiceRecorder'
 
 type ExerciseStatus = 'idle' | 'wrong' | 'correct' | 'revealed'
@@ -64,10 +65,12 @@ function LessonMap({
   progress,
   onOpen,
   onExam,
+  onCheatSheets,
 }: {
   progress: ProgressState
   onOpen: (lesson: GrammarLesson) => void
   onExam: () => void
+  onCheatSheets: () => void
 }) {
   const now = Date.now()
   const mastered = grammarLessons.filter((lesson) => (progress.grammarLessons[lesson.id]?.bestScore ?? 0) >= 4).length
@@ -91,6 +94,11 @@ function LessonMap({
         </div>
         <div className="mini-stat"><strong>{mastered}</strong><span>из {grammarLessons.length}</span></div>
       </section>
+
+      <div className="section-switch" role="tablist" aria-label="Раздел грамматики">
+        <button type="button" role="tab" aria-selected="true" className="active"><Route size={17} /> Курс</button>
+        <button type="button" role="tab" aria-selected="false" onClick={onCheatSheets}><BookOpenCheck size={17} /> Шпаргалки</button>
+      </div>
 
       <section className="grammar-continue-card">
         <div className="grammar-continue-top">
@@ -596,6 +604,7 @@ export function GrammarTrainer({
   const [phase, setPhase] = useState<LessonPhase>(resumedLesson ? 'practice' : 'overview')
   const [resultScore, setResultScore] = useState(0)
   const [exam, setExam] = useState(false)
+  const [cheatSheets, setCheatSheets] = useState(false)
 
   const nextLesson = useMemo(() => lesson
     ? grammarLessons.find((item) => item.number === lesson.number + 1)
@@ -606,6 +615,7 @@ export function GrammarTrainer({
     setLesson(selected)
     setPhase(isResuming ? 'practice' : 'overview')
     setExam(false)
+    setCheatSheets(false)
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
@@ -646,7 +656,18 @@ export function GrammarTrainer({
     )
   }
 
-  if (!lesson) return <LessonMap progress={progress} onOpen={openLesson} onExam={() => setExam(true)} />
+  if (cheatSheets && !lesson) return <ExamCheatSheets onCourse={() => setCheatSheets(false)} />
+
+  if (!lesson) {
+    return (
+      <LessonMap
+        progress={progress}
+        onOpen={openLesson}
+        onExam={() => setExam(true)}
+        onCheatSheets={() => setCheatSheets(true)}
+      />
+    )
+  }
   if (phase === 'overview') return <LessonOverview lesson={lesson} onBack={backToMap} onStart={start} />
   if (phase === 'practice') {
     return (

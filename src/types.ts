@@ -1,6 +1,7 @@
 export type TopicColor = 'red' | 'blue' | 'gold'
 export type LessonSection = 'main' | 'past' | 'followup'
 export type Rating = 'again' | 'hard' | 'good' | 'easy'
+export type PicturePracticeMode = 'guided' | 'memory' | 'exam'
 
 export interface VocabularyCard {
   id: string
@@ -78,6 +79,14 @@ export interface SentenceDeck {
   cycle: number
 }
 
+export interface PicturePracticeProgress {
+  attempts: number
+  bestCoverage: number
+  lastCoverage: number
+  completedModes: PicturePracticeMode[]
+  lastCompletedAt: number
+}
+
 export interface ProgressState {
   reviews: Record<string, CardReview>
   sentenceAttempts: Record<string, { correct: number; total: number }>
@@ -86,5 +95,6 @@ export interface ProgressState {
   examRatings: Record<string, 'hard' | 'good' | 'easy'>
   grammarLessons: Record<string, GrammarLessonProgress>
   grammarSession?: GrammarSession
+  picturePractice: Record<string, PicturePracticeProgress>
   activity: DailyActivity[]
 }

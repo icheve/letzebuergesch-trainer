@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { grammarLessonById, grammarLessons } from './grammarLessons'
 
 describe('grammar course content', () => {
-  it('contains twelve complete lessons with five varied exercises each', () => {
-    expect(grammarLessons).toHaveLength(12)
+  it('contains seventeen complete lessons with five varied exercises each', () => {
+    expect(grammarLessons).toHaveLength(17)
     expect(grammarLessons.every((lesson) => lesson.exercises.length === 5)).toBe(true)
     expect(grammarLessons.every((lesson) => new Set(lesson.exercises.map((item) => item.kind)).size === 5)).toBe(true)
   })
