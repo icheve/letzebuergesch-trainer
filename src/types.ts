@@ -35,7 +35,7 @@ export interface Topic {
   titleRu: string
   eyebrow: string
   color: TopicColor
-  icon: 'home' | 'languages' | 'housing'
+  icon: 'home' | 'languages' | 'housing' | 'media' | 'leisure' | 'sport' | 'gift' | 'cooking'
   vocabulary: VocabularyCard[]
   sentences: SentenceItem[]
 }

@@ -1,5 +1,7 @@
 import type { SentenceItem, Topic, VocabularyCard } from '../types'
 import { generalVocabulary } from './generalVocabulary'
+import { newTopics } from './newTopics'
+import { newVocabularyContexts } from './newVocabularyContexts'
 import { vocabularyContexts } from './vocabularyContexts'
 
 const sentence = (
@@ -171,7 +173,7 @@ const housing: Topic = {
   ],
 }
 
-export const topics: Topic[] = [homeland, languages, housing]
+export const topics: Topic[] = [homeland, languages, housing, ...newTopics]
 
 export const vocabularyTopicOptions = [
   { id: 'general', titleRu: 'Общее' },
@@ -182,7 +184,7 @@ export const allVocabulary = [
   ...topics.flatMap((topic) =>
     topic.vocabulary.map((card) => ({
       ...card,
-      ...vocabularyContexts[card.id],
+      ...(vocabularyContexts[card.id] ?? newVocabularyContexts[card.id]),
       topicId: topic.id,
       topicTitle: topic.titleRu,
     })),

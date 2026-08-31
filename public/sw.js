@@ -1,4 +1,4 @@
-const CACHE = 'letz-28-v3'
+const CACHE = 'letz-28-v4'
 const SHELL = ['./manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png']
 const LOD_AUDIO_MANIFEST = './audio/lod/manifest.json'
 

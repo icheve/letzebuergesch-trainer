@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { allSentences, allVocabulary, analogueSentences, topics, verifiedSentences } from './topics'
 
 describe('learning content', () => {
-  it('contains the complete initial PDF corpus', () => {
-    expect(topics).toHaveLength(3)
-    expect(verifiedSentences).toHaveLength(73)
-    expect(allVocabulary).toHaveLength(50)
+  it('contains the complete PDF and OneNote corpus', () => {
+    expect(topics).toHaveLength(8)
+    expect(verifiedSentences).toHaveLength(207)
+    expect(allVocabulary).toHaveLength(120)
     expect(allVocabulary.filter((item) => item.topicId === 'general')).toHaveLength(11)
   })
 
   it('keeps analogues separate from verified answers', () => {
     expect(analogueSentences).toHaveLength(18)
-    expect(allSentences).toHaveLength(91)
+    expect(allSentences).toHaveLength(225)
     expect(verifiedSentences.every((item) => item.kind === 'verified')).toBe(true)
     expect(analogueSentences.every((item) => item.kind === 'analogue')).toBe(true)
   })

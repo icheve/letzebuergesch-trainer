@@ -1,13 +1,27 @@
 import { useState } from 'react'
-import { BookOpen, ChevronDown, ChevronUp, Clock3, Home, Languages, MapPin, MessageSquareText } from 'lucide-react'
+import { BookOpen, ChevronDown, ChevronUp, Clock3, CookingPot, Dumbbell, Gift, Home, Languages, MapPin, MessageSquareText, MonitorSmartphone, Volleyball } from 'lucide-react'
 import { analogueSentences, topics } from '../data/topics'
 import type { ProgressState, Topic } from '../types'
 
-const icons = { home: Home, languages: Languages, housing: MapPin }
+const icons = {
+  home: Home,
+  languages: Languages,
+  housing: MapPin,
+  media: MonitorSmartphone,
+  leisure: Volleyball,
+  sport: Dumbbell,
+  gift: Gift,
+  cooking: CookingPot,
+}
 const sources: Record<string, string> = {
   homeland: 'okHEEMECHTSLAND.pdf',
   languages: 'Sproochen.pdf',
   housing: 'Wunnuert (2).pdf',
+  media: 'Luxembourgish.one · Medien',
+  leisure: 'Luxembourgish.one · Fräizäit',
+  sport: 'Luxembourgish.one · Sport',
+  gifts: 'Luxembourgish.one · Kaddoen',
+  cooking: 'Luxembourgish.one · Kachen',
 }
 
 function TopicCard({ topic, progress, expanded, onToggle }: {
@@ -61,7 +75,7 @@ export function TopicsPage({ progress }: { progress: ProgressState }) {
     <main className="screen topics-screen">
       <section className="screen-heading">
         <div><p className="kicker">База из Ваших PDF</p><h1>Темы</h1></div>
-        <div className="counter-pill">{topics.length} темы</div>
+        <div className="counter-pill">{topics.length} тем</div>
       </section>
       <p className="topics-intro">В приложении уже <strong>{totalSentences} персональных ответа</strong>, <strong>{totalWords} слов</strong> и <strong>{analogueSentences.length} дополнительных фраз</strong>. Новые PDF можно добавлять в папку проекта.</p>
       <div className="topics-list">
@@ -77,7 +91,7 @@ export function TopicsPage({ progress }: { progress: ProgressState }) {
       </div>
       <aside className="content-note">
         <BookOpen size={21} />
-        <div><strong>Персональные формулировки</strong><p>Упражнения основаны на Ваших готовых ответах. Дополнительные аналоги будут добавляться отдельно и не заменят проверенный материал.</p></div>
+        <div><strong>Персональные формулировки</strong><p>Упражнения основаны на Ваших готовых ответах из PDF и OneNote. Дополнительные аналоги добавляются отдельно и не заменяют персональный материал.</p></div>
       </aside>
     </main>
   )
